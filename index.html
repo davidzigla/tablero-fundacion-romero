@@ -134,9 +134,6 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
   <header class="fr-head" id="encabezado">
     <span class="fr-eyebrow">Fundación Romero · Evaluación de becas 2026</span>
     <h1 class="fr-title">Tablero Becas Grupo Romero</h1>
-    <p class="fr-takeaway" id="takeaway">
-      Entre <b class="dash-skeleton" data-source="encuesta" data-field="valor" id="tk-sat-min">—</b> y <b class="dash-skeleton" data-source="encuesta" data-field="valor" id="tk-sat-max">—</b> de quienes respondieron está muy satisfecho/a con la beca, según el programa; el desafío está en la culminación: completó la beca entre <b class="dash-skeleton" data-source="encuesta" data-field="valor" id="tk-comp-min">—</b> y <b class="dash-skeleton" data-source="encuesta" data-field="valor" id="tk-comp-max">—</b>.
-    </p>
   </header>
 
   <div class="fr-controls" id="filtros">
@@ -552,21 +549,6 @@ window.dash=(function(){
     box.replaceChildren(t);
   }
 
-  /* ---------- takeaway ---------- */
-  function drawTakeaway(P) {
-    const put = (id, serie, pick) => {
-      const node = document.getElementById(id);
-      const cands = P.programas.map((p) => [p, get(P, p, serie)]).filter(([, r]) => r && r.n >= MIN_OK && r.valor != null);
-      node.classList.remove('dash-skeleton');
-      if (!cands.length) { node.textContent = '—'; node.removeAttribute('data-where'); return; }
-      const [p, r] = cands.reduce((a, b) => (pick(b[1].valor, a[1].valor) ? b : a));
-      node.textContent = r.valor + '%';
-      node.dataset.where = whereOf(p, P.genero, P.zona, serie);
-      node.title = NAME[p];
-    };
-    put('tk-sat-min', 'sat', (a, b) => a < b); put('tk-sat-max', 'sat', (a, b) => a > b);
-    put('tk-comp-min', 'estado.completo', (a, b) => a < b); put('tk-comp-max', 'estado.completo', (a, b) => a > b);
-  }
 
   /* ---------- per-program results ---------- */
   const RES = {
@@ -664,10 +646,8 @@ window.dash=(function(){
     const encBoxes = ['matriz', 'ch-valor', 'ch-canal', 'ch-estado', 'ch-dif', 'ch-tutor', 'ch-exp', 'ch-nps', 'ch-tutorcomp', 'ch-sost', 'ch-fac', 'ch-fac-bd', 'ch-res', 'ch-emp'].map((id) => document.getElementById(id));
     if (d.status !== 'ok') {
       encBoxes.forEach((b) => failBox(b, d.status));
-      ['tk-sat-min', 'tk-sat-max', 'tk-comp-min', 'tk-comp-max'].forEach((id) => { const n = document.getElementById(id); n.textContent = '—'; if (d.status === 'error') n.classList.remove('dash-skeleton'); });
     } else {
       if (lastRows !== d.data) { buildIndex(d.data); lastRows = d.data; }
-      drawTakeaway(P);
       const T = P.tab, progs = P.programas;
       if (T === 'resumen') drawMatrix(document.getElementById('matriz'), P);
       if (T === 'relevancia') {
